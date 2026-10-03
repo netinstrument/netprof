@@ -8,12 +8,12 @@ public struct AsyncZone
 
     internal AsyncZone(AsyncEventToken token)
     {
-	_token = token;
+        _token = token;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     public void Dispose()
     {
-	Profiler.EndAsyncEvent(_token);
+        Profiler.EndAsyncEvent(_token);
     }
 }

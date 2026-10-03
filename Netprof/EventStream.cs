@@ -15,7 +15,7 @@ internal class EventStream
 
     public EventStream(int generation, int threadId, string? threadName)
     {
-	Generation = generation;
+        Generation = generation;
         ThreadId = threadId;
         ThreadName = threadName;
         Head = _tail = new EventChunk();
@@ -24,20 +24,20 @@ internal class EventStream
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Append(long timestamp, string name, EventKind kind, long spanId)
     {
-	var tail = _tail;
-	int index = tail.Count;
+        var tail = _tail;
+        int index = tail.Count;
 
-	if ((uint)index >= EventChunk.Capacity)
-	{
-	    var next = new EventChunk();
-	    tail.Next = next;
+        if ((uint)index >= EventChunk.Capacity)
+        {
+            var next = new EventChunk();
+            tail.Next = next;
             _tail = next;
             tail = next;
             index = 0;
-	}
+        }
 
-	tail.Events[index] = tail.Events[index] with { Timestamp = timestamp, Name = name, Kind = kind, SpanId = spanId };
-	tail.Count = index + 1;
+        tail.Events[index] = tail.Events[index] with { Timestamp = timestamp, Name = name, Kind = kind, SpanId = spanId };
+        tail.Count = index + 1;
 
     }
 }

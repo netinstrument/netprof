@@ -12,44 +12,44 @@ public class ProfileCapture
 
     internal ProfileCapture(ProfilerState state, int processId, long timestampFrequency)
     {
-	_state = state;
-	_processId = processId;
-	_timestampFrequency = timestampFrequency;
+        _state = state;
+        _processId = processId;
+        _timestampFrequency = timestampFrequency;
     }
 
     public void ExportChromeTrace(string path)
     {
-	ArgumentException.ThrowIfNullOrEmpty(path);
+        ArgumentException.ThrowIfNullOrEmpty(path);
 
-	using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize: 64 * 1024, options: FileOptions.SequentialScan);
+        using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize: 64 * 1024, options: FileOptions.SequentialScan);
 
-	var options = new JsonWriterOptions { Indented = false };
-	using var writer = new Utf8JsonWriter(file, options);
+        var options = new JsonWriterOptions { Indented = false };
+        using var writer = new Utf8JsonWriter(file, options);
 
-	writer.WriteStartObject();
+        writer.WriteStartObject();
         writer.WriteStartArray("traceEvents");
 
-	var streams = _state.Streams;
-	for (var stream = streams; stream is not null; stream = stream.Next)
-	{
-	    if (stream.ThreadName is not null)
-	    {
-		WriteThreadNameMetadata(writer, stream);
-	    }
+        var streams = _state.Streams;
+        for (var stream = streams; stream is not null; stream = stream.Next)
+        {
+            if (stream.ThreadName is not null)
+            {
+                WriteThreadNameMetadata(writer, stream);
+            }
 
-	    for (var chunk = stream.Head; chunk is not null; chunk = chunk.Next)
-	    {
-		for (var i = 0; i < chunk.Count; i += 1)
-		{
-		    WriteTraceEvent(writer, stream.ThreadId, chunk.Events[i]);
-		}
-	    }
-	}
+            for (var chunk = stream.Head; chunk is not null; chunk = chunk.Next)
+            {
+                for (var i = 0; i < chunk.Count; i += 1)
+                {
+                    WriteTraceEvent(writer, stream.ThreadId, chunk.Events[i]);
+                }
+            }
+        }
 
-	writer.WriteEndArray();
-	writer.WriteString("displayTimeUnit", "ms");
-	writer.WriteEndObject();
-	writer.Flush();
+        writer.WriteEndArray();
+        writer.WriteString("displayTimeUnit", "ms");
+        writer.WriteEndObject();
+        writer.Flush();
     }
 
     private void WriteThreadNameMetadata(Utf8JsonWriter writer, EventStream stream)
@@ -67,19 +67,19 @@ public class ProfileCapture
 
     private void WriteTraceEvent(Utf8JsonWriter writer, int threadId, in Event record)
     {
-	writer.WriteStartObject();
-	writer.WriteString("name", record.Name);
-	writer.WriteString("ph", GetPhase(record.Kind));
-	writer.WriteNumber("ts", ToMicroseconds(record.Timestamp - _state.StartTimestamp, _timestampFrequency));
-	writer.WriteNumber("pid", _processId);
+        writer.WriteStartObject();
+        writer.WriteString("name", record.Name);
+        writer.WriteString("ph", GetPhase(record.Kind));
+        writer.WriteNumber("ts", ToMicroseconds(record.Timestamp - _state.StartTimestamp, _timestampFrequency));
+        writer.WriteNumber("pid", _processId);
         writer.WriteNumber("tid", threadId);
 
-	if (record.Kind is EventKind.AsyncBegin or EventKind.AsyncEnd)
-	{
-	    writer.WriteString("id", record.SpanId.ToString("x16", CultureInfo.InvariantCulture));
-	}
+        if (record.Kind is EventKind.AsyncBegin or EventKind.AsyncEnd)
+        {
+            writer.WriteString("id", record.SpanId.ToString("x16", CultureInfo.InvariantCulture));
+        }
 
-	writer.WriteEndObject();
+        writer.WriteEndObject();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

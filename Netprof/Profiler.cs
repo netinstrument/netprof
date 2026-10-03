@@ -19,16 +19,16 @@ public static class Profiler
     /// </summary>
     public static ProfileCapture Capture()
     {
-	while (true)
-	{
-	    var state = Volatile.Read(ref _state);
-	    var next = new ProfilerState(unchecked(state.Generation + 1), Stopwatch.GetTimestamp());
+        while (true)
+        {
+            var state = Volatile.Read(ref _state);
+            var next = new ProfilerState(unchecked(state.Generation + 1), Stopwatch.GetTimestamp());
 
-	    if (ReferenceEquals(Interlocked.CompareExchange(ref _state, next, state), state))
-	    {
-		return new ProfileCapture(state, Environment.ProcessId, Stopwatch.Frequency);
-	    }
-	}
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _state, next, state), state))
+            {
+                return new ProfileCapture(state, Environment.ProcessId, Stopwatch.Frequency);
+            }
+        }
     }
 
     /// <summary>
@@ -62,9 +62,9 @@ public static class Profiler
     public static AsyncEventToken BeginAsyncEvent(string name)
     {
         var state = Volatile.Read(ref _state);
-	var spanId = Interlocked.Increment(ref _nextSpanId);
+        var spanId = Interlocked.Increment(ref _nextSpanId);
         WriteEvent(state, name, EventKind.AsyncBegin, spanId);
-	return new AsyncEventToken(state.Generation, name, spanId);
+        return new AsyncEventToken(state.Generation, name, spanId);
     }
 
     /// <summary>
@@ -97,9 +97,9 @@ public static class Profiler
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     public static Zone EnterZone(string name)
     {
-	var state = Volatile.Read(ref _state);
-	WriteEvent(state, name, EventKind.Begin, 0);
-	return new Zone(state.Generation, name);
+        var state = Volatile.Read(ref _state);
+        WriteEvent(state, name, EventKind.Begin, 0);
+        return new Zone(state.Generation, name);
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public static class Profiler
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     public static AsyncZone EnterAsyncZone(string name)
     {
-	return new AsyncZone(BeginAsyncEvent(name));
+        return new AsyncZone(BeginAsyncEvent(name));
     }
 
     /// <summary>
@@ -122,13 +122,13 @@ public static class Profiler
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     internal static void EndZone(int generation, string name)
     {
-	var state = Volatile.Read(ref _state);
-	if (state.Generation != generation)
-	{
-	    return;
-	}
+        var state = Volatile.Read(ref _state);
+        if (state.Generation != generation)
+        {
+            return;
+        }
 
-	WriteEvent(state, name, EventKind.End, 0);
+        WriteEvent(state, name, EventKind.End, 0);
     }
 
     /// <summary>
@@ -138,14 +138,14 @@ public static class Profiler
     [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
     private static void WriteEvent(ProfilerState state, string name, EventKind kind, long spanId)
     {
-	var stream = _stream;
-	if (stream is null || stream.Generation != state.Generation)
-	{
-	    stream = new EventStream(state.Generation, Environment.CurrentManagedThreadId, Thread.CurrentThread.Name);
-	    state.AddEventStream(stream);
-	    _stream = stream;
-	}
+        var stream = _stream;
+        if (stream is null || stream.Generation != state.Generation)
+        {
+            stream = new EventStream(state.Generation, Environment.CurrentManagedThreadId, Thread.CurrentThread.Name);
+            state.AddEventStream(stream);
+            _stream = stream;
+        }
 
-	stream.Append(Stopwatch.GetTimestamp(), name, kind, spanId);
+        stream.Append(Stopwatch.GetTimestamp(), name, kind, spanId);
     }
 }

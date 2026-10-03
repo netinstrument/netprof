@@ -13,6 +13,6 @@ internal class EventChunk
     [InlineArray(Capacity)]
     public struct EventArray
     {
-	private Event _element0;
+        private Event _element0;
     }
 }
