@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Netprof.Example/Netprof.Example.csproj" />
+  <Project Path="Netprof/Netprof.csproj" />
+</Solution>
