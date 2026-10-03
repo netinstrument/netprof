@@ -38,6 +38,5 @@ internal class EventStream
 
         tail.Events[index] = tail.Events[index] with { Timestamp = timestamp, Name = name, Kind = kind, SpanId = spanId };
         tail.Count = index + 1;
-
     }
 }
